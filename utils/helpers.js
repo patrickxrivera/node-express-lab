@@ -3,7 +3,7 @@ import { pipe, curry, isEmpty } from 'ramda';
 import * as code from './statusCodes';
 import db from '../data/db.js';
 
-let newId = 2381472;
+let newId = 0;
 
 // ******* createPost ******* //
 
@@ -11,7 +11,7 @@ const sendPost = curry((res, newPost) => {
   res.status(code.STATUS_CREATED).json(newPost);
 });
 
-const handleDbError = (res) => {
+const handleDbAddError = (res) => {
   const errorMessage = 'Please provide title and contents for the post.';
   res.status(code.STATUS_BAD_REQUEST).json({ errorMessage });
 };
@@ -20,11 +20,10 @@ const addToDb = curry((res, newPost) => {
   /* SIDE EFFECTS! */
   try {
     db.insert(newPost);
-    newId++;
     return newPost;
   } catch (err) {
-    // console.log(err);
-    // handleDbError(res);
+    console.log(err);
+    handleDbAddError(res);
   }
 });
 
@@ -45,7 +44,12 @@ const validatePost = curry(
 export const createPost = (req, res) =>
   pipe(validatePost(res), formatPost, addToDb(res), sendPost(res))(req);
 
-// ******* createPost ******* //
+// ******* getPosts ******* //
+
+const handleDbFindError = (res) => {
+  const errorMessage = 'The posts information could not be retrieved.';
+  res.status(code.STATUS_SERVER_ERROR).json({ errorMessage });
+};
 
 const getPosts = async (res) => {
   const posts = await db.find();

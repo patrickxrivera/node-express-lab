@@ -62,4 +62,64 @@ describe('API ROUTES', () => {
       expect(res.body[0]).to.have.property('contents');
     });
   });
+
+  describe('DELETE /api/posts/:id', () => {
+    beforeEach(async () => {
+      const route = '/api/posts/new';
+      const post = {
+        title: 'I love software engineering',
+        contents:
+          'It can be very difficult at times. But thats what makes it so rewarding :)'
+      };
+
+      await chai
+        .request(server)
+        .post(route)
+        .send(post);
+    });
+    it('should delete a post with the given id', async () => {
+      const route = '/api/posts/0';
+      const deletedPost = {
+        id: 0,
+        title: 'I love software engineering',
+        contents:
+          'It can be very difficult at times. But thats what makes it so rewarding :)'
+      };
+
+      const res = await chai.request(server).delete(route);
+
+      expect(res).to.have.status(code.STATUS_OK);
+      expect(res.body).to.be.a('object');
+      expect(res.body).to.include(deletedPost);
+    });
+
+    it(`should return an error message when the given id isn't found`, async () => {
+      const route = '/api/posts/20';
+      const errorMessage = 'The post with the specified ID does not exist.';
+      const res = await chai.request(server).delete(route);
+
+      expect(res).to.have.status(code.STATUS_NOT_FOUND);
+      expect(res.body).to.be.a('object');
+      expect(res.body.errorMessage).to.equal(errorMessage);
+    });
+  });
+
+  describe('PUT /api/posts/:id', () => {
+    it('should update a post', async () => {
+      const route = '/api/posts/1';
+      const updatedPost = {
+        title: 'Updated post',
+        contents: 'This is an update'
+      };
+
+      const res = await chai
+        .request(server)
+        .put(route)
+        .send(updatedPost);
+
+      expect(res).to.have.status(code.STATUS_OK);
+      expect(res.body).to.be.a('object');
+      expect(res.body).to.include(updatedPost);
+    });
+  });
 });
